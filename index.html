@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style type="text/css">
+        body, div, img {
+            margin: 0;
+            padding: 0;
+        }
+
+        img {
+            border: none;
+        }
+
+        #smallImg {
+            position: relative;
+            margin: 100px auto;
+            width: 300px;
+            height: 188px;
+        }
+
+        #mask {
+            position: absolute;
+            background: #CDE074;
+            opacity: 0.3;
+            filter: alpha(opacity=30);
+        }
+
+        #show {
+            position: absolute;
+            top: 0;
+            left: 310px;
+            width: 600px;
+            height: 367px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<div id="smallImg"><img src="img/small1.jpg" alt=""/></div>
+
+<script type="text/javascript">
+    // 原理：小图和大图是等比例缩放的，遮罩mask大小是按比例算出来的
+    // 小图：width:300 height:188
+    // 大图：width:1200 height:750
+    // 大图显示区 show：width:600 height: 376
+    // 遮罩mask/小图=右边可显示区show/整个大图 --> mask=右边可显示区show/整个大图*小图
+    var maskW = 600 / 1200 * 300;
+    var maskH = 376 / 750 * 188;
+
+    var smallBox = document.getElementById("smallImg");
+    smallBox.onmouseenter = function (e) {
+        e = e || event;
+        var oMask = document.createElement("div");
+        oMask.id = "mask";
+        if (e.pageX) {
+            oMask.style.left = e.pageX - this.offsetLeft + "px";
+            oMask.style.top = e.pageY - this.offsetTop + "px";
+        } else {
+            oMask.style.left = (document.documentElement.scrollLeft || document.body.scrollLeft) + e.clientX - this.offsetLeft + "px";
+            oMask.style.top = (document.documentElement.scrollTop || document.body.scrollTop) + e.clientY - this.offsetTop + "px";
+        }
+        oMask.style.width = maskW + "px";
+        oMask.style.height = maskH + "px";
+        this.appendChild(oMask);
+
+        var oShow = document.createElement("div");
+        oShow.id = "show";
+        this.appendChild(oShow);
+        var bigImg = document.createElement("img");
+        bigImg.src = "img/bigImg.jpg";
+        oShow.appendChild(bigImg);
+    };
+    smallBox.onmousemove = function (e) {
+        e = e || event;
+        var oMask = document.getElementById("mask");
+        var oShow = document.getElementById("show");
+        if (oMask) {
+            if (e.pageX) {
+                var l = e.pageX - this.offsetLeft - oMask.clientWidth / 2;
+                var t = e.pageY - this.offsetTop - oMask.clientHeight / 2;
+            } else {
+                var l = (document.documentElement.scrollLeft || document.body.scrollLeft) + e.clientX - this.offsetLeft - oMask.clientWidth / 2;
+                var t = (document.documentElement.scrollTop || document.body.scrollTop) + e.clientY - this.offsetTop - oMask.clientHeight / 2;
+
+            }
+            var maxL = this.offsetWidth - oMask.offsetWidth;
+            if (l <= 0) {
+                oMask.style.left = 0;
+            } else if (l >= maxL) {
+                oMask.style.left = maxL + "px";
+            } else {
+                oMask.style.left = l + "px";
+            }
+            oShow.scrollLeft = parseInt(oMask.style.left) * (1200 / 300);
+//            console.log(oMask.style.left); // -->带单位的 ··px，要转化一下
+            var maxT = this.offsetHeight - oMask.offsetHeight
+            if (t <= 0) {
+                oMask.style.top = 0;
+            } else if (t >= maxT) {
+                oMask.style.top = maxT + "px"
+            } else {
+                oMask.style.top = t + "px";
+            }
+            oShow.scrollTop = parseInt(oMask.style.top) * (750 / 188);
+        }
+
+    };
+    smallBox.onmouseleave = function (e) {
+        e = e || event;
+        //删除遮罩mask
+        var oMask = document.getElementById("mask");
+        if (oMask) {
+            this.removeChild(oMask);
+        }
+        //删除显示大图
+        var oShow = document.getElementById("show");
+        if (oShow) {
+            this.removeChild(oShow);
+        }
+    }
+
+
+</script>
+</body>
+</html>
